@@ -1,0 +1,31 @@
+ <!doctype html>
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <title>Greeter</title>
+      <style>
+        *{ font-size:1.5em; }
+      </style>
+      <script>
+      // 1 - get a reference to the button
+      // 2 - add a click event to button that calls a `sayHello` function
+      // 3 - create a `sayHello()` function
+      // 3A - get name of person from the <input>
+      // 3B - get a reference to the #output <p>
+      // 3C - update HTML of #output <p>
+        function sayHello() {
+const name = document.getElementById('input-firstname').value;
+const output = document.getElementById('output')
+
+output.innerHTML = `Hello, ${name}!`;
+
+        };
+
+      </script>
+    </head>
+  <body>
+    <button id="btn" onClick="sayHello()">Click Me!</button>
+    <input id="input-firstname" placeholder="Type in your name">
+    <p id="output">???  </p>
+  </body>
+  </html>
