@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Greeter</title>
+  <!-- Embedded font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+    }
+    * {
+      font-size: 1.5em;
+    }
+    button {
+      height: 50px;
+      width: 150px;
+      font-size: 14pt;
+      margin: 5px;
+      margin-bottom: 3%;
+    }
+    /* Media query for 1024px */
+    @media (min-width: 1024px) {
+      body {
+        background-color: red;
+        padding: 100px;
+      }
+    }
+  </style>
+
+  <script>
+    window.addEventListener("load", function() {
+      const btnHello = document.getElementById("btn-hello");
+      const btnGoodbye = document.getElementById("btn-goodbye");
+
+      // Add event listeners
+      btnHello.addEventListener("click", function() { greet("Hello"); });
+      btnGoodbye.addEventListener("click", function() { greet("Goodbye"); });
+
+      function greet(greeting) {
+        let first = document.getElementById("input-firstname").value.trim();
+        let last = document.getElementById("input-lastname").value.trim();
+
+        // Default values
+        if (first === "") first = "Peter";
+        if (last === "") last = "Parker";
+
+        const output = document.getElementById("output");
+        output.innerHTML = `${greeting}, ${first} ${last}!`;
+
+        output.style.color = "red";
+        output.style.backgroundColor = "yellow";
+      }
+    });
+  </script>
+</head>
+<body>
+    <button id="btn-hello">Say Hello</button>
+  <button id="btn-goodbye">Say Goodbye</button>
+    <br/>
+
+  <input id="input-firstname" placeholder="First name">
+  <input id="input-lastname" placeholder="Last name">
+
+  <p id="output">???</p>
+</body>
+</html>
