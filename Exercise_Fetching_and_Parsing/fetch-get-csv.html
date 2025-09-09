@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<title>Fetch - Load CSV</title>
+	<style>
+	body{
+	  font-family: sans-serif;
+	}
+	</style>
+</head>
+<body>
+	<h2>Fetch - Load CSV File</h2>
+	<p>The <code>pet-names.csv</code> file contains popular dog and cat pet names on separate lines, separated by commas.</p>
+	<p>Note that because fetch is loading a local file, this example will have to be run off a web server rather than from your computer's hard drive (e.g. banjo.rit.edu or VSCode's liveserver etc)</p>
+	
+	<hr>
+	<button id="my-button">Load Data</button>
+	<p id="output">Click button to load</p>
+	
+<script>
+const loadCSVFile = () => {
+  fetch('./data/pet-names.csv')
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text()
+    })
+    .then(text => {
+      console.log('Success:', text);
+      
+      // TODO: You implement the parsing and display code here!
+      // See step-by-step instructions below
+      const rows = text.split("\n")
+      const words = rows.map(row => row.split(",")); 
+      console.log(words);
+     
+      // Create HTML for dog names
+      const dogHTML = `<h3>Dog Names</h3><ol>${}</ol>`;
+
+      const catHTML = ...;
+
+      // Display the HTML on the page
+      document.querySelector('#output').innerHTML = dogHTML + catHTML;
+
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      document.querySelector('#output').innerHTML = `<p>Error loading file: ${error.message}</p>`;
+    });
+};
+
+document.querySelector('#my-button').addEventListener('click', loadCSVFile);
+</script>
+</body>
+</html>
