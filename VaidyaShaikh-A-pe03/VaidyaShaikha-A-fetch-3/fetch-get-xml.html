@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+	<title>Fetch - Load CSV</title>
+	<style>
+	body{
+	  font-family: sans-serif;
+	}
+	</style>
+</head>
+<body>
+	<h2>Fetch - Load CSV File</h2>
+	<p>The <code>pet-names.csv</code> file contains popular dog and cat pet names on separate lines, separated by commas.</p>
+	<p>Note that because fetch is loading a local file, this example will have to be run off a web server rather than from your computer's hard drive (e.g. banjo.rit.edu or VSCode's liveserver etc)</p>
+	
+	<hr>
+	<button id="my-button">Load Data</button>
+	<p id="output">Click button to load</p>
+	
+<script>
+const loadXMLFile = () => {
+  fetch('./data/pet-names.xml')
+    .then(response => {
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      return response.text();
+    })
+    .then(xmlString => {
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlString, 'application/xml');
+
+      if (xmlDoc.querySelector('parsererror')) {
+        throw new Error('XML parsing error - check your XML file format');
+      }
+
+      const toNames = str =>
+        str.split(',').map(s => s.trim()).filter(Boolean);
+      const toOl = arr =>
+        `<ol>${arr.map(n => `<li>${n}</li>`).join('')}</ol>`;
+
+      const namelists = xmlDoc.querySelectorAll('namelist');
+
+      let dogHTML = '';
+      let catHTML = '';
+
+      namelists.forEach(namelist => {
+        const cid = namelist.getAttribute('cid');
+        const namesText = namelist.textContent || '';
+        const names = toNames(namesText);
+        const listHTML = toOl(names);
+
+        if (cid === 'dognames') {
+          dogHTML = `<h3>Dog Names</h3>${listHTML}`;
+        } else if (cid === 'catnames') {
+          catHTML = `<h3>Cat Names</h3>${listHTML}`;
+        }
+      });
+
+      // Show results
+      document.querySelector('#output').innerHTML = dogHTML + catHTML;
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      document.querySelector('#output').innerHTML = `<p>Error: ${error.message}</p>`;
+    });
+};
+
+document.querySelector('#my-button').addEventListener('click', loadXMLFile);
+</script>
+
+</body>
+</html>
