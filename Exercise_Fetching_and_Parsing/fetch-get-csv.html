@@ -37,13 +37,13 @@ const loadCSVFile = () => {
       const words = rows.map(row => row.split(",")); 
       console.log(words);
      
-      // Create HTML for dog names
-      const dogHTML = `<h3>Dog Names</h3><ol>${}</ol>`;
+      // // Create HTML for dog names
+const dogHTML = `<h3>Dog Names</h3> <ol> ${words[0].map(name => `<li>${name}</li>`).join("")} </ol>`;
 
-      const catHTML = ...;
+const catHTML = `<h3>Dog Names</h3> <ol> ${words[1].map(name => `<li>${name}</li>`).join("")} </ol>`;
 
-      // Display the HTML on the page
-      document.querySelector('#output').innerHTML = dogHTML + catHTML;
+      // // Display the HTML on the page
+       document.querySelector('#output').innerHTML = dogHTML + catHTML;
 
     })
     .catch(error => {
