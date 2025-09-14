@@ -41,7 +41,7 @@ h1 { margin: 16px; }
     background-color: #23D160;
   }
 
-  #myButton {
+  #my-button {
     width: 300px;
     height: 75pt;
     font-size: 1.5rem;
@@ -52,7 +52,15 @@ h1 { margin: 16px; }
     font-size: 2rem;
   }
 }
-
+    #my-button-xl {
+    display: none; 
+    width: 300px;
+    height: 75pt;
+    font-size: 1.5rem;
+  }
+ @media (min-width: 1408px) {
+      #my-button-xl { display: inline-block; }
+    }
 
 /* Desktop layout*/
 @media only screen and (min-width:1024px) {
