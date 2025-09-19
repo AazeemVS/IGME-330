@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Canvas 2D – Screensaver + Controls (Full Screen)</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background:#111; color:#ddd; }
+    #ui { padding: 12px; }
+    button { font-size: 1.1em; margin-right: .5em; }
+    section { margin: .5em 0; }
+    canvas { display:block; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <section>
+      <button id="btnPlay">Play</button>
+      <button id="btnPause">Pause</button>
+    </section>
+    <section>
+      <input type="checkbox" id="cbRectangles" checked>
+      <label for="cbRectangles">Rectangles</label>
+      &nbsp;&nbsp;
+    </section>
+    <section>
+      <p>Click on the canvas to “spraypaint” rectangles (pause first if you want).</p>
+    </section>
+  </div>
+
+  <canvas id="screen"></canvas>
+
+  <script>
+    "use strict";
+
+    // helper function
+    function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function randColor(){
+      const b = () => 55 + Math.round(Math.random() * 200);
+      return `rgba(${b()},${b()},${b()},0.8)`;
+    }
+
+    // --- state ---
+    const canvas = document.getElementById("screen");
+    const ctx = canvas.getContext("2d");
+    let paused = false;
+    let createRectangles = true;
+    let createCircles = true;
+    let running = false;
+    let lastTime = 0;
+    const interval = 300;  // time between shape creation
+
+    // Makes sure the canvas fits the whole screen
+    function resizeCanvas(){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    window.addEventListener("resize", resizeCanvas);
+
+    // drawing functions
+    function drawRandomRect(){
+      const W = canvas.width, H = canvas.height;
+      const rw = randInt(20, Math.max(40, Math.floor(W * 0.25)));
+      const rh = randInt(20, Math.max(40, Math.floor(H * 0.25)));
+      const x  = randInt(0, W - rw);
+      const y  = randInt(0, H - rh);
+
+      ctx.fillStyle   = randColor();
+      ctx.strokeStyle = randColor();
+      ctx.lineWidth   = randInt(1, 6);
+
+      ctx.beginPath();
+      ctx.rect(x, y, rw, rh);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function drawRandomCircle(){
+      const W = canvas.width, H = canvas.height;
+      const r  = randInt(10, Math.floor(Math.min(W, H) * 0.1));
+      const x  = randInt(r, W - r);
+      const y  = randInt(r, H - r);
+
+      ctx.fillStyle   = randColor();
+      ctx.strokeStyle = randColor();
+      ctx.lineWidth   = randInt(1, 6);
+
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    function drawRandomShape(){
+      const options = [];
+      if (createRectangles) options.push("rect");
+      if (createCircles)    options.push("circle");
+      if (options.length === 0) return; // nothing enabled
+
+      const pick = options[randInt(0, options.length - 1)];
+      if (pick === "rect") drawRandomRect();
+      else drawRandomCircle();
+    }
+
+    // Allows user to spray paint rectangles on click
+    function sprayPaint(e){
+      const r = canvas.getBoundingClientRect();
+      const mx = e.clientX - r.left;
+      const my = e.clientY - r.top;
+
+      for (let i = 0; i < 10; i++){
+        const w = randInt(6, 16);
+        const h = randInt(6, 16);
+        const x = mx + randInt(-20, 20);
+        const y = my + randInt(-20, 20);
+
+        ctx.fillStyle   = randColor();
+        ctx.strokeStyle = randColor();
+        ctx.lineWidth   = randInt(0, 3);
+
+        ctx.beginPath();
+        ctx.rect(x, y, w, h);
+        ctx.fill();
+        if (ctx.lineWidth > 0) ctx.stroke();
+      }
+    }
+
+    // animation loop
+    function animate(t){
+      if (!paused){
+        if (t - lastTime > interval){
+          drawRandomShape();
+          lastTime = t;
+        }
+      }
+      requestAnimationFrame(animate);
+    }
+
+    document.getElementById("btnPlay").onclick = () => {
+      paused = false;
+      if (!running){
+        running = true;
+        requestAnimationFrame(animate);
+      }
+    };
+    document.getElementById("btnPause").onclick = () => { paused = true; };
+    document.getElementById("cbRectangles").onchange = e => { createRectangles = e.target.checked; };
+    canvas.addEventListener("click", sprayPaint);
+
+    resizeCanvas();
+    running = true;
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
