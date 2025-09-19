@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Canvas 2 - Shaikh-A</title>
+  <style>
+    canvas { border:1px solid gray; }
+  </style>
+  <script>
+    "use strict";
+    window.onload = () => {
+      const canvas = document.querySelector("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Background panel
+      ctx.fillStyle = "red";
+      ctx.fillRect(20, 20, 600, 440);
+
+      // --- PATHS: rectangle the "hard way" (rect + fill + stroke)
+      ctx.beginPath();
+      ctx.rect(50, 50, 100, 100);
+      ctx.fillStyle = "yellow";
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      // --- LINES (include the required 600px line @ width 20)
+      // Helper line
+      ctx.beginPath();
+      ctx.moveTo(60, 200);
+      ctx.lineTo(220, 260);
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 6;
+      ctx.stroke();
+      ctx.closePath();
+
+      // REQUIRED: 600px long line, width 20
+      ctx.beginPath();
+      ctx.moveTo(20, 460);
+      ctx.lineTo(620, 460); // exactly 600px long
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 20;
+      ctx.lineCap = "butt";
+      ctx.stroke();
+      ctx.closePath();
+
+      // --- ARCS
+      // Full circle (fill + stroke)
+      ctx.beginPath();
+      ctx.arc(500, 100, 40, 0, Math.PI * 2, false);
+      ctx.fillStyle = "purple";
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      // Semi-circle (upper half) (fill + stroke)
+      ctx.beginPath();
+      ctx.arc(100, 250, 40, 0, Math.PI, false); // 0 → PI = upper half
+      ctx.fillStyle = "pink";
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      // --- Two small "eyes" near center (canvas center ≈ 320,240)
+      ctx.beginPath();
+      ctx.arc(300, 220, 10, 0, Math.PI * 2, false);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+
+      ctx.beginPath();
+      ctx.arc(340, 220, 10, 0, Math.PI * 2, false);
+      ctx.fillStyle = "white";
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.closePath();
+    };
+  </script>
+</head>
+<body>
+  <canvas width="640" height="480">Get a real browser!</canvas>
+</body>
+</html>
