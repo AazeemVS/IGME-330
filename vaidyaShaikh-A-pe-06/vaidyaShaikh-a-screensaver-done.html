@@ -39,14 +39,14 @@
     "use strict";
 
     // ---------- helpers ----------
-    function randInt(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
-    function randColor(){
+    const randInt = (min, max) => { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    const randColor = () => {
       const b = () => 55 + Math.round(Math.random() * 200);
       return `rgba(${b()},${b()},${b()},0.8)`;
     }
 
     // ---------- state ----------
-    const canvas = document.getElementById("screen");
+    const canvas = document.querySelector("#screen");
     const ctx = canvas.getContext("2d");
 
     let paused = false;
@@ -59,7 +59,7 @@
     let createLines = true;
 
     // sizing
-    function resizeCanvas(){
+    const resizeCanvas = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
       // use helper to paint the background via our API
@@ -69,7 +69,7 @@
 
     // canvas helper functions
     // drawRectangle
-    function drawRectangle(ctx, x, y, w, h, fillStyle="black", lineWidth=0, strokeStyle="black"){
+    const drawRectangle = (ctx, x, y, w, h, fillStyle="black", lineWidth=0, strokeStyle="black") =>{
       ctx.save();
       ctx.fillStyle = fillStyle;
       ctx.lineWidth = lineWidth;
@@ -82,7 +82,7 @@
     }
 
     // drawArc
-    function drawArc(ctx, x, y, radius, fillStyle="black", lineWidth=0, strokeStyle="black", startAngle=0, endAngle=Math.PI*2){
+    const drawArc = (ctx, x, y, radius, fillStyle="black", lineWidth=0, strokeStyle="black", startAngle=0, endAngle=Math.PI*2) => {
       ctx.save();
       ctx.fillStyle = fillStyle;
       ctx.lineWidth = lineWidth;
@@ -95,7 +95,7 @@
     }
 
     // drawLine
-    function drawLine(ctx, x1, y1, x2, y2, lineWidth=1, strokeStyle="black"){
+    const drawLine = (ctx, x1, y1, x2, y2, lineWidth=1, strokeStyle="black") =>{
       ctx.save();
       ctx.lineWidth = lineWidth;
       ctx.strokeStyle = strokeStyle;
@@ -107,7 +107,7 @@
     }
 
     // random drawers
-    function drawRandomRect(){
+    const drawRandomRect = () =>{
       const W = canvas.width, H = canvas.height;
       const rw = randInt(20, Math.max(40, Math.floor(W * 0.25)));
       const rh = randInt(20, Math.max(40, Math.floor(H * 0.25)));
@@ -116,7 +116,7 @@
       drawRectangle(ctx, x, y, rw, rh, randColor(), randInt(1,6), randColor());
     }
 
-    function drawRandomArc(){
+    const drawRandomArc = () => {
       const W = canvas.width, H = canvas.height;
       const r  = randInt(8, Math.floor(Math.min(W, H) * 0.1));
       const x  = randInt(r, W - r);
@@ -128,7 +128,7 @@
       drawArc(ctx, x, y, r, randColor(), randInt(1,6), randColor(), a1, a2);
     }
 
-    function drawRandomLine(){
+    const drawRandomLine = () =>{
       const W = canvas.width, H = canvas.height;
       const x1 = randInt(0, W), y1 = randInt(0, H);
       const x2 = randInt(0, W), y2 = randInt(0, H);
@@ -136,7 +136,7 @@
     }
 
     // spraypaint
-    function sprayPaint(e){
+    const sprayPaint = (e) => {
       const r = canvas.getBoundingClientRect();
       const mx = e.clientX - r.left;
       const my = e.clientY - r.top;
@@ -154,7 +154,7 @@
     }
 
     // animation
-    function animate(t){
+    const animate = (t) =>{
       if (!paused){
         if (t - lastTime > interval){
           if (createRectangles) drawRandomRect();
@@ -187,7 +187,7 @@
     canvas.addEventListener("click", sprayPaint);
 
     // init
-    function init(){
+    const init = () =>{
       resizeCanvas();
 
       drawLine(ctx, 20, 20, 200, 20, 2, "#2a2a2a");
