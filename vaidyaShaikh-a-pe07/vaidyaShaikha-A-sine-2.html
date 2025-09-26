@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sine – Animated (trail/dots)</title>
+  <style>
+    canvas { border: 1px solid #ccc; display: block; }
+  </style>
+  <script>
+  "use strict";
+
+  // Canvas setup
+  const canvasWidth = 800;
+  const canvasHeight = 360;
+  let canvas, ctx;
+
+  // Animation state
+  let fps = 30;          // frames per second
+  let x = 0;             // current x position
+  let counter = 0;       // phase angle
+  const stepX = 10;      // spacing between dots
+  const amp = 100;       // wave amplitude
+
+  /**
+   * Initialize the canvas and start animation.
+   */
+  function init() {
+    canvas = document.querySelector("canvas");
+    ctx = canvas.getContext("2d");
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // Fill background once
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    loop();
+  }
+
+  /*
+   Convert degrees to radians.
+   */
+  function dtr(degrees) {
+    return degrees * (Math.PI / 180);
+  }
+
+  /*
+    Draw a circle at (x,y).
+   */
+  function drawCircle(ctx, x, y, radius, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  /*
+   Main animation loop: Draws sine, cosine, and arc patterns
+   */
+  function loop() {
+    setTimeout(loop, 1000 / fps);
+
+    // Faint fade for trail effect
+    ctx.save();
+    ctx.fillStyle = "black";
+    ctx.globalAlpha = 1 / fps;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.restore();
+
+    x += stepX;
+    counter += 0.3;
+
+    // White sine wave
+    let y = canvasHeight / 2 + Math.sin(counter) * amp;
+    drawCircle(ctx, x, y, 2, "white");
+
+    // Red cosine wave
+    y = canvasHeight / 2 + Math.cos(counter) * amp;
+    drawCircle(ctx, x, y, 2, "red");
+
+    // Yellow arc pattern
+    y = canvasHeight / 2 - Math.sqrt(x % 50) * 5;
+    drawCircle(ctx, x, y, 4, "yellow");
+
+    // Reset when reaching canvas edge
+    if (x > canvasWidth) x = 0;
+  }
+
+  window.addEventListener("load", init);
+  </script>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Phyllotaxis — Interactive</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 18px; }
+    #controls { display: flex; gap: 12px; align-items: center; margin: 10px 0 14px; }
+    label { font-weight: 600; }
+    canvas { border: 1px solid black; display: block; }
+    .note { font-size: 0.925rem; color: #333; max-width: 780px; }
+    code { background: #f3f3f3; padding: 0 4px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <label for="ctrl-divergence">Divergence Angle</label>
+    <select id="ctrl-divergence">
+      <option value="137.1">137.1</option>
+      <option value="137.3">137.3</option>
+      <option value="137.5" selected>137.5</option>
+      <option value="137.7">137.7</option>
+      <option value="137.9">137.9</option>
+    </select>
+    <button id="btn-restart">Restart</button>
+  </div>
+
+  <canvas id="canvas"></canvas>
+
+  <p class="note"> <strong>About this app:</strong> Runs at <code>60 FPS</code>, with adjustable divergence angle and a Restart button. Colors shift through the spectrum as <strong>n</strong> increases. </p>
+
+  <script type="module">
+    "use strict";
+
+    // sizes
+    const canvasWidth = 400;
+    const canvasHeight = 300;
+
+    // state
+    let canvas, ctx;
+    let n = 0;
+    let divergence = 137.5;
+    let spacing = 4;
+
+    function init() {
+      canvas = document.querySelector("#canvas");
+      ctx = canvas.getContext("2d");
+      canvas.width = canvasWidth;
+      canvas.height = canvasHeight;
+      clear();
+
+      const divSel = document.querySelector("#ctrl-divergence");
+      divergence = Number(divSel.value);
+      divSel.addEventListener("change", () => {
+        divergence = Number(divSel.value);
+      });
+
+      document.querySelector("#btn-restart").addEventListener("click", restart);
+
+      requestAnimationFrame(loop);
+    }
+
+    function loop() {
+      // angle (rad) and radius
+      const a = n * divergence * (Math.PI / 180);
+      const r = spacing * Math.sqrt(n);
+
+      // mild growth/tiny radius variation
+      spacing += 0.0005;
+      const radius = 2 + (n % 120) / 400;
+
+      // position
+      const x = r * Math.cos(a) + canvasWidth / 2;
+      const y = r * Math.sin(a) + canvasHeight / 2;
+
+      // color
+      const color = `hsl(${(n / 5) % 361}, 100%, 50%)`;
+
+      drawCircle(x, y, radius, color);
+      n++;
+
+      if (n % 5000 === 0) restart(); // periodic reset
+      requestAnimationFrame(loop);
+    }
+
+    function restart() {
+      n = 0;
+      spacing = 4;
+      clear();
+    }
+
+    function clear() {
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    }
+
+    function drawCircle(x, y, radius, color) {
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    window.addEventListener("load", init);
+  </script>
+</body>
+</html>

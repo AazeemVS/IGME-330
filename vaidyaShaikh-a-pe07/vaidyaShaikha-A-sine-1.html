@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sine – Static</title>
+  <style>canvas { border: 1px solid black; }</style>
+  <script>
+  "use strict";
+
+  // canvas size
+  const canvasWidth = 600, canvasHeight = 300;
+  let canvas, ctx;
+
+  // start program
+  function init() {
+    canvas = document.querySelector("canvas");
+    ctx = canvas.getContext("2d");
+    canvas.width = canvasWidth;
+    canvas.height = canvasHeight;
+
+    // fill background black
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    loop();
+  }
+
+  // draw sine wave dots
+  function loop() {
+    let counter = 0;
+    let increase = Math.PI * 2 / 100;
+    for (let i = 0; i < 1; i += 0.01) {
+      let x = i;
+      let y = Math.sin(counter) / 2 + 0.5; // range 0–1
+      drawCircle(ctx, x * canvasWidth, canvasHeight / 2 + (y * 100), 3, "white");
+      counter += increase;
+    }
+  }
+
+  // convert degrees to radians
+  function dtr(degrees) {
+    return degrees * (Math.PI / 180);
+  }
+
+  // draw a circle
+  function drawCircle(ctx, x, y, radius, color) {
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  window.onload = init;
+  </script>
+</head>
+<body>
+  <canvas id="canvas"></canvas>
+</body>
+</html>
