@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Canvas 2D – Transformations + save/restore</title>
+  <style>
+    body{font-family:system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin:24px;}
+    canvas{border:1px solid #999; display:block; margin-top:12px}
+    .note{font-size:14px;color:#444;max-width:800px}
+    code{background:#f6f8fa;padding:2px 6px;border-radius:4px}
+  </style>
+</head>
+<body>
+  <h1>Canvas Transformations (translate, rotate, scale) with <code>save()</code>/<code>restore()</code></h1>
+  <p class="note">
+    This page implements the "Demo A" instructions: tweak the first green square using drawing state, then
+    translate/scale/rotate other squares to illustrate how transforms are cumulative and origin‑based. It also
+    shows why drawing shapes around the origin (0,0) is convenient, and finishes with a simple animation that
+    accumulates a rotation over time.
+  </p>
+
+  <canvas id="c" width="640" height="480">Get a real browser!</canvas>
+
+  <script>
+  'use strict';
+
+  const canvas = document.getElementById('c') || (function(){
+    // fallback if id changed during paste
+    const el = document.querySelector('canvas');
+    el.id = 'c';
+    return el;
+  })();
+  const ctx = canvas.getContext('2d');
+
+  // Helpers 
+  function bg(color = 'yellow'){
+    ctx.fillStyle = color;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+  }
+  function drawAxis(x, y){
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    ctx.moveTo(-8, 0); ctx.lineTo(8, 0);
+    ctx.moveTo(0, -8); ctx.lineTo(0, 8);
+    ctx.strokeStyle = '#333';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSquareCentered(size, fillStyle){
+    ctx.fillStyle = fillStyle;
+    ctx.fillRect(-size/2, -size/2, size, size);
+  }
+  function drawRectCentered(w, h, fillStyle){
+    ctx.fillStyle = fillStyle;
+    ctx.fillRect(-w/2, -h/2, w, h);
+  }
+  function drawTriangleAroundOrigin(size, strokeStyle = 'red', lineWidth = 5){
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = lineWidth;
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.5);
+    ctx.lineTo(size * 0.5, size * 0.5);
+    ctx.lineTo(-size * 0.5, size * 0.5);
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // Animated shapes 
+  function drawGreen1(t){
+    // First green square
+    const cx = 150, cy = 150;
+    ctx.save();
+    ctx.shadowOffsetX = 12;
+    ctx.shadowOffsetY = 12;
+    ctx.shadowColor = 'rgba(153,50,204,0.6)';
+    ctx.shadowBlur = 6;
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.sin(t*0.9) * 0.35);
+    const s = 1 + 0.12 * Math.sin(t*1.7);
+    ctx.scale(s, s);
+    drawSquareCentered(100, 'green');
+    ctx.restore();
+  }
+
+  function drawGreen2(t){
+    // Second green square
+    const baseX = 260, baseY = 150;
+    const dx = Math.sin(t*1.2) * 35;
+    ctx.save();
+    ctx.translate(baseX + dx, baseY);
+    drawSquareCentered(100, 'green');
+    ctx.restore();
+  }
+
+  function drawBlueRect(t){
+    // Blue square drawn via path API
+    const cx = 410, cy = 150;
+    ctx.save();
+    ctx.translate(cx, cy + Math.sin(t*1.3)*15);
+    ctx.rotate(Math.cos(t*0.8)*0.4);
+    drawRectCentered(100, 100, 'royalblue');
+    ctx.restore();
+  }
+
+  function drawOrangeA(t){
+    // Translated only
+    const cx = 150, cy = 290;
+    ctx.save();
+    ctx.translate(cx + Math.sin(t)*20, cy + Math.cos(t*0.7)*10);
+    drawSquareCentered(100, 'orange');
+    ctx.restore();
+  }
+  function drawOrangeB(t){
+    // Translated + scaled
+    const cx = 300, cy = 290;
+    ctx.save();
+    ctx.translate(cx, cy);
+    const sx = 1.4 + 0.3*Math.sin(t*1.5);
+    const sy = 0.7 + 0.25*Math.cos(t*1.1);
+    ctx.scale(sx, sy);
+    drawSquareCentered(100, 'orange');
+    ctx.restore();
+  }
+  function drawOrangeC(t){
+    // Translated + rotated + scaled
+    const cx = 460, cy = 290;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.PI/6 + t*0.5);
+    const s = 1.2 + 0.2*Math.sin(t*2.0);
+    ctx.scale(s, s);
+    drawSquareCentered(100, 'orange');
+    ctx.restore();
+  }
+
+  function drawTriangleNaiveAnimated(t){
+    // Original absolute points
+    const ax=520, ay=110, bx=570, by=210, cx=470, cy=210;
+    const mx = (ax+bx+cx)/3, my = (ay+by+cy)/3;
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.rotate(Math.sin(t*1.2)*0.6);
+    ctx.translate(-mx, -my);
+
+    ctx.save();
+    ctx.strokeStyle = 'crimson';
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.lineTo(cx, cy);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.restore();
+    ctx.restore();
+  }
+
+  function drawTriangleBetterAnimated(t){
+    const cx = 520, cy = 340;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(t*0.9);
+    drawTriangleAroundOrigin(100, 'crimson', 5);
+    ctx.restore();
+  }
+
+  function drawCenterSpinner(t){
+    const cx = canvas.width/2, cy = 80;
+    ctx.save();
+    ctx.translate(cx, cy);
+    drawAxis(0,0);
+    const sx = 1 + 0.25 * Math.sin(t * 2.0);
+    const sy = 1 + 0.25 * Math.cos(t * 2.0);
+    ctx.rotate(t);
+    ctx.scale(sx, sy);
+    drawSquareCentered(90, '#2ecc71');
+    ctx.restore();
+  }
+
+  // Animation loop 
+  let start = performance.now();
+  function frame(ts){
+    const t = (ts - start) / 1000;
+    bg('yellow');
+
+    // Animates everything
+    drawGreen1(t);
+    drawGreen2(t);
+    drawBlueRect(t);
+    drawOrangeA(t);
+    drawOrangeB(t);
+    drawOrangeC(t);
+    drawTriangleNaiveAnimated(t);
+    drawTriangleBetterAnimated(t);
+    drawCenterSpinner(t);
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>
