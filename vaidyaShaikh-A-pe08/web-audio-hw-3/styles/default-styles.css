@@ -1,42 +1,66 @@
 body {
-  background: #eeeeee;
-  font-family: tahoma, verdana, sans serif;
+  background: radial-gradient(ellipse at 50% 20%, #0a1530, #060c1a 60%, #03060d 100%);
+  font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  color: #e6ebff;
+  margin: 0;
 }
 
 canvas {
-  margin-left: 1rem;
-  margin-top: 1rem;
+  margin: 1rem;
+  background: transparent;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 64, 255, 0.25), 0 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* ---- Controls ---- */
+#controls {
+  margin: 0 1rem 1.5rem;
+}
+
+#controls section {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
   margin-bottom: 1rem;
-  box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
-  background: #fafafa;
 }
 
-#controls{
-  margin-left: 1rem;
+#label-volume {
+  margin-left: 0.5rem;
+  opacity: 0.9;
 }
 
-#volumeLabel{
-  margin-left: 1rem;
+button, select, input[type="range"], input[type="checkbox"] {
+  accent-color: #3a7bff;
+  font: inherit;
 }
 
-section{
-  margin-bottom: 1rem;
-}
 
-#playButton{
-  font-size: 1.2rem;
-  width: 6rem;
+button {
+  background: linear-gradient(180deg, #1b2c5b, #101c3a);
+  color: #e6ebff;
+  border: 1px solid #2b427f;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: filter 0.15s ease;
 }
+button:hover { filter: brightness(1.08); }
 
-button[data-playing="yes"]:after{
-  content: "Pause";
+#btn-play { font-size: 1.2rem; width: 6rem; }
+#btn-fullscreen { font-size: 1.2rem; width: 8rem; }
+
+button[data-playing="yes"]::after { content: "Pause"; }
+button[data-playing="no"]::after { content: "Play"; }
+
+#controls label {
+  color: #c7d4ff;
+  cursor: pointer;
 }
+#controls label:hover { color: #e0e7ff; }
 
-button[data-playing="no"]:after{
-  content: "Play";
-}
-
-#fsButton{
-  font-size: 1.2rem;
-  width: 8rem;
+#controls input[type="checkbox"] {
+  width: 1.1rem;
+  height: 1.1rem;
+  vertical-align: middle;
 }
