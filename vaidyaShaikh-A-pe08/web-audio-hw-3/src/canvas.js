@@ -11,7 +11,7 @@ import * as utils from './utils.js';
 
 let ctx, canvasWidth, canvasHeight, gradient, analyserNode, audioData;
 
-function setupCanvas(canvasElement, analyserNodeRef){
+const setupCanvas = (canvasElement, analyserNodeRef) => {
   // create drawing context
   ctx = canvasElement.getContext("2d");
   canvasWidth = canvasElement.width;
@@ -31,9 +31,9 @@ function setupCanvas(canvasElement, analyserNodeRef){
 
   // this is the array where the analyser data will be stored
   audioData = new Uint8Array(analyserNode.fftSize / 2);
-}
+};
 
-function draw(params = {}){
+const draw = (params = {}) => {
   // 1 - populate the audioData array with the frequency data from the analyserNode
   analyserNode.getByteFrequencyData(audioData);
   // OR:
@@ -122,61 +122,61 @@ function draw(params = {}){
   // it is necessary
 
   // A) grab pixels
-const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-const data = imageData.data;
-const length = data.length;
+  const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+  const data = imageData.data;
+  const length = data.length;
 
-// B) iterate RGBA in steps of 4
-for (let i = 0; i < length; i += 4) {
-  // C) noise (every ~20th pixel), only if enabled
-  if (params.showNoise && Math.random() < 0.05) {
-    // red, green, blue, alpha
-    data[i + 1] = 0;       // G -> 0
-    data[i + 2] = 0;       // B -> 0
-    data[i]     = 255;     // R -> 255
-  }
-
-  // Invert, only if enabled
-  if (params.showInvert) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-
-    data[i]     = 255 - r; // R
-    data[i + 1] = 255 - g; // G
-    data[i + 2] = 255 - b; // B
-    // data[i + 3] is alpha; leave unchanged
-  }
-}
-
-if (params.showEmboss) {
-  // Work from a copy so neighbor reads aren’t affected by our writes
-  const src = new Uint8ClampedArray(data);
-  const w4 = imageData.width * 4; // row stride in the flat RGBA array
-
-  // note we are stepping through *each* sub-pixel
-  for (let i = 0; i < length; i++) {
-    if (i % 4 === 3) continue; // skip alpha channel
-
-    // avoid reading past the right edge or bottom row
-    const onRightEdge  = ((i + 4) % w4) === 0;
-    const onBottomRow  = i >= length - w4;
-    if (onRightEdge || onBottomRow) { 
-      data[i] = 127; // neutral gray at edges
-      continue;
+  // B) iterate RGBA in steps of 4
+  for (let i = 0; i < length; i += 4) {
+    // C) noise (every ~20th pixel), only if enabled
+    if (params.showNoise && Math.random() < 0.05) {
+      // red, green, blue, alpha
+      data[i + 1] = 0;       // G -> 0
+      data[i + 2] = 0;       // B -> 0
+      data[i]     = 255;     // R -> 255
     }
 
-    // 127 + 2*current - right - below
-    const value =
-      127 + 2 * src[i] - src[i + 4] - src[i + w4];
+    // Invert, only if enabled
+    if (params.showInvert) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
 
-    // clamp to [0,255] (Uint8ClampedArray would clamp, but be explicit)
-    data[i] = value < 0 ? 0 : value > 255 ? 255 : value;
+      data[i]     = 255 - r; // R
+      data[i + 1] = 255 - g; // G
+      data[i + 2] = 255 - b; // B
+      // data[i + 3] is alpha; leave unchanged
+    }
   }
-}
 
-// D) copy image data back to canvas
-ctx.putImageData(imageData, 0, 0);
-}
+  if (params.showEmboss) {
+    // Work from a copy so neighbor reads aren’t affected by our writes
+    const src = new Uint8ClampedArray(data);
+    const w4 = imageData.width * 4; // row stride in the flat RGBA array
+
+    // note we are stepping through *each* sub-pixel
+    for (let i = 0; i < length; i++) {
+      if (i % 4 === 3) continue; // skip alpha channel
+
+      // avoid reading past the right edge or bottom row
+      const onRightEdge  = ((i + 4) % w4) === 0;
+      const onBottomRow  = i >= length - w4;
+      if (onRightEdge || onBottomRow) { 
+        data[i] = 127; // neutral gray at edges
+        continue;
+      }
+
+      // 127 + 2*current - right - below
+      const value =
+        127 + 2 * src[i] - src[i + 4] - src[i + w4];
+
+      // clamp to [0,255] (Uint8ClampedArray would clamp, but be explicit)
+      data[i] = value < 0 ? 0 : value > 255 ? 255 : value;
+    }
+  }
+
+  // D) copy image data back to canvas
+  ctx.putImageData(imageData, 0, 0);
+};
 
 export { setupCanvas, draw };
