@@ -16,12 +16,12 @@ const drawParams = {
   showNoise: false,
   showInvert: false,
   showEmboss: false,
-  useWaveform: false // NEW: toggle for time-domain visualization
+  useWaveform: false
 };
 
 const FRAMES = 1000 / 60;
 
-// Load app data (from data/av-data.json)
+// Load app data 
 const loadAppData = async () => {
   const res = await fetch("data/av-data.json");
   if (!res.ok) throw new Error(`Failed to load app data: ${res.status}`);
@@ -29,7 +29,7 @@ const loadAppData = async () => {
 };
 
 const init = async () => {
-  // 1) Load external JSON (title, tracks, defaults)
+  // 1) Load external JSON
   try {
     appData = await loadAppData();
   } catch (err) {
@@ -42,7 +42,7 @@ const init = async () => {
     };
   }
 
-  // 2) Apply <title> (and optional <h1 id="app-title"> if present)
+  // 2) Displays the title
   if (appData.title) {
     document.title = appData.title;
     const h1 = document.querySelector("#app-title");
@@ -78,8 +78,7 @@ if (instr && appData.instructions) instr.textContent = appData.instructions;
 
   // 5) Initialize UI state from JSON BEFORE wiring listeners
   const ui = start.ui ?? {};
-  Object.assign(drawParams, ui); // copy any booleans in start.ui into drawParams
-
+  Object.assign(drawParams, ui);
   // Volume from JSON
   const sliderVolume = document.querySelector("#slider-volume");
   const labelVolume  = document.querySelector("#label-volume");
@@ -90,7 +89,7 @@ if (instr && appData.instructions) instr.textContent = appData.instructions;
     if (labelVolume) labelVolume.textContent = Math.round((vol / 2) * 100);
   }
 
-  // EQ from JSON (if those controls exist)
+  // EQ from JSON
   if (start.eq) {
     const { bassGain = 0, trebleGain = 0 } = start.eq;
     if (typeof audio.setBassGain === "function") audio.setBassGain(bassGain);
@@ -106,7 +105,7 @@ if (instr && appData.instructions) instr.textContent = appData.instructions;
     if (lt) lt.textContent = `${trebleGain} dB`;
   }
 
-  // Sync checkboxes to JSON initial UI (if present)
+  // Sync checkboxes to JSON initial UI
   const syncBool = (selector, key) => {
     const el = document.querySelector(selector);
     if (el && typeof ui[key] === "boolean") {
@@ -121,7 +120,7 @@ if (instr && appData.instructions) instr.textContent = appData.instructions;
   syncBool("#cb-invert", "showInvert");
   syncBool("#cb-emboss", "showEmboss");
 
-  // Visualization radios (frequency vs waveform)
+  // Visualization radios
   const vizRadios = document.querySelectorAll('input[name="viz-mode"]');
   if (vizRadios.length) {
     const target = drawParams.useWaveform ? "waveform" : "frequency";
@@ -136,7 +135,7 @@ if (instr && appData.instructions) instr.textContent = appData.instructions;
   loop();
 };
 
-// ≤60 FPS loop using setTimeout
+// Caps at 60 fps
 const loop = () => {
   canvas.draw(drawParams);
   setTimeout(loop, FRAMES);

@@ -80,22 +80,20 @@ const setVolume = (value) => {
   if (gainNode) gainNode.gain.value = value;
 };
 
-// === New: public setters for EQ controls ===
 /**
- * @param {number} db - gain in dB (typical range -15..+15)
+ * @param {number} db - gain in dB
  */
 const setBassGain = (db) => {
   if (bassFilter) bassFilter.gain.value = Number(db);
 };
 
 /**
- * @param {number} db - gain in dB (typical range -15..+15)
+ * @param {number} db - gain in dB 
  */
 const setTrebleGain = (db) => {
   if (trebleFilter) trebleFilter.gain.value = Number(db);
 };
 
-// (Optional helpers if you later add frequency sliders)
 const setBassFrequency = (hz) => {
   if (bassFilter) bassFilter.frequency.value = Number(hz);
 };

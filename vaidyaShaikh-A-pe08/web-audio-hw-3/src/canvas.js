@@ -7,7 +7,6 @@
     - maybe a better name for this file/module would be *visualizer.js* ?
 */
 
-import * as utils from './utils.js';
 
 let ctx, canvasWidth, canvasHeight, gradient, analyserNode, audioData;
 // ===== Sprites =====
@@ -19,27 +18,27 @@ class Sprite {
     this.x = x;
     this.y = y;
     this.r = r;
-    this.hue = hue;   // base hue (will shift with treble)
+    this.hue = hue;  
     this.vx = vx;
     this.vy = vy;
-    this.pulse = 0;   // smoothed bass energy
-    this.switch = false; // toggled on crude beats
+    this.pulse = 0;
+    this.switch = false;
   }
 
   update(metrics) {
     const { avg, bass, treble, beat } = metrics;
 
-    // size breathes with bass
-    this.pulse = 0.85 * this.pulse + 0.15 * bass; // smooth 0..1
+    // size changes with bass
+    this.pulse = 0.85 * this.pulse + 0.15 * bass;
     this.r = 10 + this.pulse * 30;
 
-    // hue shifts with treble energy
+    // hue shifts with treble
     this.hue = (this.hue + treble * 6) % 360;
 
-    // toggle state on “beat” (rising edge over threshold)
+    // toggle state on beat
     if (beat) this.switch = !this.switch;
 
-    // drift; speed scales a bit with overall avg
+    // drift speed scales a bit with overall avg
     const speedScale = 0.5 + avg;
     this.x += this.vx * speedScale;
     this.y += this.vy * speedScale;
@@ -72,14 +71,13 @@ class Sprite {
   }
 }
 
-/** Compute a few quick metrics from the current audioData array */
+/** Compute needed values from the current audioData array */
 function computeMetrics(byteArray) {
   // average across all bins
   let sum = 0;
   for (let i = 0; i < byteArray.length; i++) sum += byteArray[i];
   const avg = sum / (byteArray.length * 255); // 0..1
 
-  // bass = first 1/8th, treble = last 1/8th
   const band = Math.max(1, Math.floor(byteArray.length / 8));
   let bassSum = 0, trebleSum = 0;
   for (let i = 0; i < band; i++) bassSum += byteArray[i];
@@ -87,7 +85,6 @@ function computeMetrics(byteArray) {
   const bass = bassSum / (band * 255);
   const treble = trebleSum / (band * 255);
 
-  // crude beat: rising edge over threshold
   const THRESH = 0.28;
   computeMetrics._lastAvg ??= 0;
   const beat = (avg > THRESH) && (computeMetrics._lastAvg <= THRESH);
@@ -99,9 +96,9 @@ function computeMetrics(byteArray) {
 // subtle deep-blue vertical gradient
 const makeBlueGradient = () => {
   const g = ctx.createLinearGradient(0, 0, 0, canvasHeight);
-  g.addColorStop(0.0, "#051026"); // near-black blue
-  g.addColorStop(0.5, "#0b234a"); // deep indigo
-  g.addColorStop(1.0, "#081a35"); // navy
+  g.addColorStop(0.0, "#051026"); 
+  g.addColorStop(0.5, "#0b234a");
+  g.addColorStop(1.0, "#081a35");
   return g;
 };
 
@@ -113,7 +110,6 @@ const setupCanvas = (canvasElement, analyserNodeRef) => {
   canvasHeight = canvasElement.height;
 
   // create a gradient that runs top to bottom
-  // (replaced with a more subtle blue gradient)
   gradient = makeBlueGradient();
 
   // keep a reference to the analyser node
@@ -123,7 +119,7 @@ const setupCanvas = (canvasElement, analyserNodeRef) => {
   audioData = new Uint8Array(analyserNode.fftSize / 2);
 
   sprites = [];
-  const count = 10; // requirement is >= 2; 10 looks nice
+  const count = 10;
   for (let i = 0; i < count; i++) {
     sprites.push(new Sprite({
       x: Math.random() * canvasWidth,
@@ -191,7 +187,7 @@ const draw = (params = {}) => {
   const sat = 80 + Math.floor(avg * 20);
   const light = 50 + Math.floor(avg * 10);
 
-  // 4 - neon “audio bars” with glow (blue palette)
+  // 4 - neon audio bars with glow (blue palette)
   if (params.showBars){
     const barSpacing = 3;
     const margin = 20;
@@ -217,7 +213,7 @@ const draw = (params = {}) => {
     ctx.restore();
   }
 
-  // 5 - radial pulse rings from center (react to average loudness)
+  // 5 - radial pulse rings from center
   if (params.showCircles){
     const cx = canvasWidth / 2;
     const cy = canvasHeight / 2;
@@ -240,7 +236,6 @@ const draw = (params = {}) => {
     ctx.restore();
   }
 
-  // 6 - “audio ribbon” bezier path (uses frequency bins to sculpt a wave)
   {
     const cx = canvasWidth / 2;
     const cy = canvasHeight * 0.42;
@@ -263,7 +258,7 @@ const draw = (params = {}) => {
       const m = audioData[i] / 255;
       const y = cy - (m - 0.5) * 2 * scale;
 
-      // use a simple quadratic curve to smooth segments
+      // Quadratic curve to smooth segments
       const ctrlX = x - (canvasWidth / (audioData.length / step)) * 0.5;
       const ctrlY = (cy + y) * 0.5;
       ctx.quadraticCurveTo(ctrlX, ctrlY, x, y);
@@ -272,7 +267,6 @@ const draw = (params = {}) => {
     ctx.stroke();
     ctx.restore();
   }
-  // === AESTHETIC UPGRADE ENDS HERE ===
 
   // 6 - bitmap manipulation
   // TODO: right now. we are looping though every pixel of the canvas (320,000 of them!), 
@@ -290,9 +284,9 @@ const draw = (params = {}) => {
     for (let i = 0; i < length; i += 4) {
       // C) noise (blue-tinted sparkles), only if enabled
       if (params.showNoise && Math.random() < 0.035) {
-        data[i]     = 80 + Math.random() * 70;  // R (cool)
-        data[i + 1] = 120 + Math.random() * 80; // G
-        data[i + 2] = 255;                      // B (push blue)
+        data[i]     = 80 + Math.random() * 70;
+        data[i + 1] = 120 + Math.random() * 80;
+        data[i + 2] = 255;
       }
 
       // Invert, only if enabled
@@ -307,12 +301,11 @@ const draw = (params = {}) => {
     }
 
     if (params.showEmboss) {
-      // Work from a copy so neighbor reads aren’t affected by our writes
       const src = new Uint8ClampedArray(data);
-      const w4 = imageData.width * 4; // row stride in the flat RGBA array
+      const w4 = imageData.width * 4;
 
       for (let i = 0; i < length; i++) {
-        if (i % 4 === 3) continue; // skip alpha channel
+        if (i % 4 === 3) continue;
         const onRightEdge  = ((i + 4) % w4) === 0;
         const onBottomRow  = i >= length - w4;
         if (onRightEdge || onBottomRow) { 
