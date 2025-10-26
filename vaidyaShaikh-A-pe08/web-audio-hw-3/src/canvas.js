@@ -10,6 +10,91 @@
 import * as utils from './utils.js';
 
 let ctx, canvasWidth, canvasHeight, gradient, analyserNode, audioData;
+// ===== Sprites =====
+let sprites = [];
+
+/** Simple audio-reactive sprite */
+class Sprite {
+  constructor({ x, y, r = 12, hue = 200, vx = 0, vy = 0 }) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.hue = hue;   // base hue (will shift with treble)
+    this.vx = vx;
+    this.vy = vy;
+    this.pulse = 0;   // smoothed bass energy
+    this.switch = false; // toggled on crude beats
+  }
+
+  update(metrics) {
+    const { avg, bass, treble, beat } = metrics;
+
+    // size breathes with bass
+    this.pulse = 0.85 * this.pulse + 0.15 * bass; // smooth 0..1
+    this.r = 10 + this.pulse * 30;
+
+    // hue shifts with treble energy
+    this.hue = (this.hue + treble * 6) % 360;
+
+    // toggle state on “beat” (rising edge over threshold)
+    if (beat) this.switch = !this.switch;
+
+    // drift; speed scales a bit with overall avg
+    const speedScale = 0.5 + avg;
+    this.x += this.vx * speedScale;
+    this.y += this.vy * speedScale;
+
+    // wrap around canvas
+    if (this.x < -this.r) this.x = canvasWidth + this.r;
+    if (this.x > canvasWidth + this.r) this.x = -this.r;
+    if (this.y < -this.r) this.y = canvasHeight + this.r;
+    if (this.y > canvasHeight + this.r) this.y = -this.r;
+  }
+
+  draw(ctx) {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.shadowBlur = 8 + this.pulse * 24;
+    ctx.shadowColor = `hsl(${this.hue}, 80%, 60%)`;
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+
+    if (this.switch) {
+      ctx.fillStyle = `hsla(${this.hue}, 85%, 55%, 0.75)`;
+      ctx.fill();
+    } else {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = `hsla(${this.hue}, 85%, 70%, 0.9)`;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+/** Compute a few quick metrics from the current audioData array */
+function computeMetrics(byteArray) {
+  // average across all bins
+  let sum = 0;
+  for (let i = 0; i < byteArray.length; i++) sum += byteArray[i];
+  const avg = sum / (byteArray.length * 255); // 0..1
+
+  // bass = first 1/8th, treble = last 1/8th
+  const band = Math.max(1, Math.floor(byteArray.length / 8));
+  let bassSum = 0, trebleSum = 0;
+  for (let i = 0; i < band; i++) bassSum += byteArray[i];
+  for (let i = byteArray.length - band; i < byteArray.length; i++) trebleSum += byteArray[i];
+  const bass = bassSum / (band * 255);
+  const treble = trebleSum / (band * 255);
+
+  // crude beat: rising edge over threshold
+  const THRESH = 0.28;
+  computeMetrics._lastAvg ??= 0;
+  const beat = (avg > THRESH) && (computeMetrics._lastAvg <= THRESH);
+  computeMetrics._lastAvg = avg;
+
+  return { avg, bass, treble, beat };
+}
 
 // subtle deep-blue vertical gradient
 const makeBlueGradient = () => {
@@ -19,6 +104,7 @@ const makeBlueGradient = () => {
   g.addColorStop(1.0, "#081a35"); // navy
   return g;
 };
+
 
 const setupCanvas = (canvasElement, analyserNodeRef) => {
   // create drawing context
@@ -35,6 +121,20 @@ const setupCanvas = (canvasElement, analyserNodeRef) => {
 
   // this is the array where the analyser data will be stored
   audioData = new Uint8Array(analyserNode.fftSize / 2);
+
+  sprites = [];
+  const count = 10; // requirement is >= 2; 10 looks nice
+  for (let i = 0; i < count; i++) {
+    sprites.push(new Sprite({
+      x: Math.random() * canvasWidth,
+      y: Math.random() * canvasHeight,
+      r: 8 + Math.random() * 14,
+      hue: 180 + Math.random() * 60,
+      vx: (Math.random() * 2 - 1) * 0.8,
+      vy: (Math.random() * 2 - 1) * 0.8
+    }));
+  }
+
 };
 
 // helper: average amplitude
@@ -61,6 +161,9 @@ const draw = (params = {}) => {
   analyserNode.getByteFrequencyData(audioData);
   // OR:
   // analyserNode.getByteTimeDomainData(audioData); // waveform data
+  const metrics = computeMetrics(audioData);
+    for (const s of sprites) s.update(metrics);
+    for (const s of sprites) s.draw(ctx);
 
   // 2 - background: fade with slight trail for motion blur
   ctx.save();
@@ -225,5 +328,6 @@ const draw = (params = {}) => {
     ctx.putImageData(imageData, 0, 0);
   }
 };
+
 
 export { setupCanvas, draw };
