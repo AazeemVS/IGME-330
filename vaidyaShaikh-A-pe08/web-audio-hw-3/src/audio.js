@@ -3,12 +3,17 @@ let audioCtx;
 
 // **These are "private" properties - these will NOT be visible outside of this module (i.e. file)**
 // 2 - WebAudio nodes that are part of our WebAudio audio routing graph
-let element, sourceNode, analyserNode, gainNode;
+let element, sourceNode, analyserNode, gainNode, bassFilter, trebleFilter;
 
 // 3 - here we are faking an enumeration
 const DEFAULTS = Object.freeze({
   gain: 0.5,
-  numSamples: 256
+  numSamples: 256,
+  // EQ defaults
+  bassFreq: 100,      // Hz for the lowshelf corner
+  trebleFreq: 3000,   // Hz for the highshelf corner
+  bassGain: 0,        // dB
+  trebleGain: 0       // dB
 });
 
 // 4 - create a new array of 8-bit integers (0-255)
@@ -30,28 +35,30 @@ const setupWebAudio = (filePath) => {
   // 4 - create a source node that points at the <audio> element
   sourceNode = audioCtx.createMediaElementSource(element);
 
-  // 5 - create an analyser node
-  analyserNode = audioCtx.createAnalyser(); // note the UK spelling of “Analyser”
-
-  /*
-  // 6
-  // We will request DEFAULTS.numSamples number of samples or "bins" spaced equally
-  // across the sound spectrum.
-  //
-  // If DEFAULTS.numSamples (fftSize) is 256, then the first bin is 0 Hz, the second is 172 Hz,
-  // the third is 344Hz, and so on. Each bin contains a number between 0–255 representing
-  // the amplitude of that frequency.
-  */
-
-  // fft stands for Fast Fourier Transform
+  // 5 - create an analyser node (note the UK spelling of “Analyser”)
+  analyserNode = audioCtx.createAnalyser();
   analyserNode.fftSize = DEFAULTS.numSamples;
+
+  // 6 - create EQ filters
+  bassFilter = audioCtx.createBiquadFilter();
+  bassFilter.type = "lowshelf";
+  bassFilter.frequency.value = DEFAULTS.bassFreq;
+  bassFilter.gain.value = DEFAULTS.bassGain;
+
+  trebleFilter = audioCtx.createBiquadFilter();
+  trebleFilter.type = "highshelf";
+  trebleFilter.frequency.value = DEFAULTS.trebleFreq;
+  trebleFilter.gain.value = DEFAULTS.trebleGain;
 
   // 7 - create a gain (volume) node
   gainNode = audioCtx.createGain();
   gainNode.gain.value = DEFAULTS.gain;
 
   // 8 - connect the nodes - we now have an audio graph
-  sourceNode.connect(analyserNode);
+  // source -> bass -> treble -> analyser -> gain -> destination
+  sourceNode.connect(bassFilter);
+  bassFilter.connect(trebleFilter);
+  trebleFilter.connect(analyserNode);
   analyserNode.connect(gainNode);
   gainNode.connect(audioCtx.destination);
 };
@@ -70,7 +77,29 @@ const pauseCurrentSound = () => {
 
 const setVolume = (value) => {
   value = Number(value); // make sure that it's a Number rather than a String
-  gainNode.gain.value = value;
+  if (gainNode) gainNode.gain.value = value;
+};
+
+/**
+ * @param {number} db - gain in dB
+ */
+const setBassGain = (db) => {
+  if (bassFilter) bassFilter.gain.value = Number(db);
+};
+
+/**
+ * @param {number} db - gain in dB 
+ */
+const setTrebleGain = (db) => {
+  if (trebleFilter) trebleFilter.gain.value = Number(db);
+};
+
+const setBassFrequency = (hz) => {
+  if (bassFilter) bassFilter.frequency.value = Number(hz);
+};
+
+const setTrebleFrequency = (hz) => {
+  if (trebleFilter) trebleFilter.frequency.value = Number(hz);
 };
 
 export {
@@ -80,5 +109,10 @@ export {
   pauseCurrentSound,
   loadSoundFile,
   setVolume,
-  analyserNode
+  analyserNode,
+  // new exports
+  setBassGain,
+  setTrebleGain,
+  setBassFrequency,
+  setTrebleFrequency
 };
