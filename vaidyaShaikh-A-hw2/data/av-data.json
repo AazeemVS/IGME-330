@@ -1,0 +1,23 @@
+{
+  "title": "Blue Nebula Visualizer",
+  "tracks": [
+    { "file": "media/New Adventure Theme.mp3", "name": "New Adventure Theme" },
+    { "file": "media/Peanuts Theme.mp3",       "name": "Peanuts Theme" },
+    { "file": "media/The Picard Song.mp3",     "name": "The Picard Song" }
+  ],
+  "start": {
+    "trackIndex": 0,
+    "volume": 1.0,
+    "ui": {
+      "showGradient": true,
+      "showBars": true,
+      "showCircles": true,
+      "showNoise": false,
+      "showInvert": false,
+      "showEmboss": false,
+      "useWaveform": false
+    },
+    "eq": { "bassGain": 0, "trebleGain": 0 }
+  },
+  "instructions": "Press Play. Use the checkboxes to toggle effects. Adjust volume. Try switching tracks."
+}
