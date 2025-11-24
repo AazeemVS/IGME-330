@@ -1,0 +1,65 @@
+<!doctype html>
+ <html lang="en">
+ <head> 
+    <meta charset="utf-8">
+    <title>Web Assignment 0</title>
+    <meta name="description" content="First web assignment">
+    <meta name="author" content="student name">
+
+    <script>
+        function updateSelection() {
+            const foodType = document.getElementById('foodSelect').value;
+            const colorElement = document.querySelector('[name="color_selection"]:checked');
+            const colorValue = colorElement ? colorElement.value : 'black';
+            const textArea = document.getElementById('textAreaControl')
+            textArea.value = foodType
+            textArea.style.color = colorValue
+        }
+
+    </script>
+
+ </head>
+ <body style="font-family: 'Segoe UI';">
+    <h1 style = "text-align: center; font-weight: bold; font-family: Verdana; font-size: 36px;">SWEN-344 Web Assignment 0</h1>
+
+    <h2 style="text-align: center; font-family: Impact;">Section 04</h2>
+
+    <div style="text-align: center; margin: 20px">
+
+        <select id="foodSelect" onchange="updateSelection()" style="margin-bottom: 15px;">
+            <option value="" selected disable>Select a Food Type</option>
+            <option value="Protein">Protein</option>
+            <option value="Carbs">Carbs</option>
+            <option value="Fruits">Fruits</option>
+            <option value="Vegetables">Vegetables</option>
+            <option value="Sweets">Sweets</option>
+        </select>
+
+        <p style="margin-bottom: 20px;">
+            <label style="margin-right: 10px;">
+                <input type="radio" name="color_selection" value="Black" checked onchange="updateSelection()"> **Black**`
+            </label>
+            <label style="margin-right: 10px;">
+                <input type="radio" name="color_selection" value="Red" onchange="updateSelection()"> Red
+            </label>
+            <label style="margin-right: 10px;">
+                <input type="radio" name="color_selection" value="Green" onchange="updateSelection()"> Green
+            </label>
+            <label style="margin-right: 10px;">
+                <input type="radio" name="color_selection" value="Blue" onchange="updateSelection()"> Blue
+            </label>
+            <label style="margin-right: 10px;">
+                <input type="radio" name="color_selection" value="Purple" onchange="updateSelection()"> Purple
+            </label>
+        </p>
+        <div>
+            <textarea
+                id="textAreaControl"
+                rows="5"
+                cols="40"
+                style="resize: none"
+            >Food Type...</textarea>
+        </div>
+    </div>
+</body>    
+</html>
