@@ -1,0 +1,1 @@
+(()=>{"use strict";var e=Object.freeze({gain:.5,numSamples:256,bassFreq:100,trebleFreq:3e3,bassGain:0,trebleGain:0});new Uint8Array(e.numSamples/2)})();

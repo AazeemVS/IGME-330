@@ -1,0 +1,52 @@
+Audio Visualizer Project Documentation
+
+Name: Aazeem Vaidya Shaikh
+Project Title: Blue Nebula Visualizer
+
+II. Audio Effect Nodes
+I added two BiquadFilterNodes:
+
+Bass Filter (Low-Shelf) – boosts or cuts low frequencies, which is controlled by the bass slider.
+
+Treble Filter (High-Shelf) – boosts or cuts high frequencies, which is controlled by the treble slider.
+
+III. Sprite Class
+
+Class Name: Sprite
+Small glowing circles that react to the music:
+
+Size grows with bass
+
+Color shifts with treble
+
+Switches between filled/outlined on beats
+
+Moves slowly across the screen and wraps around edges
+
+They add energy and depth to the visualization.
+
+IV. App Data (av-data.json)
+
+The JSON file includes:
+
+Title: Blue Nebula Visualizer
+
+Track list (3 songs with file names/titles)
+
+Starting settings
+
+Instructions: “Press Play, toggle effects, adjust volume, switch tracks.”
+
+The JSON initializes the app title, UI state, and track menu.
+
+V. Aesthetic Improvements
+
+Added animated blue gradient background (The nebula effect)
+
+Neon-style glowing bars and rings
+
+Beat-reactive sprites
+
+Clean, organized control layout
+
+Self-Grade: 15 / 15: I feel like I've added significant usability and aesthetic upgrades to the base project, and I would be proud to put this on my portfolio.
