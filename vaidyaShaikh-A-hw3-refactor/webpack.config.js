@@ -1,21 +1,22 @@
+const path = require("path");
+
 module.exports = {
-  mode: 'production',
-  entry: ['./src/main.js'],
+  mode: "production",
+  entry: "./src/loader.ts",
   output: {
-    filename: './bundle.js'
+    filename: "bundle.js",
+    path: path.resolve(__dirname, "dist"),
   },
-module: {
-  rules: [
-    {
-      test: /\.m?js$/,
-      exclude: /node_modules/,
-      use: {
-        loader: 'babel-loader',
-        options: {
-          presets: ['@babel/preset-env'],
-        },
+  resolve: {
+    extensions: [".ts", ".js"],
+  },
+  module: {
+    rules: [
+      {
+        test: /\.ts$/,
+        exclude: /node_modules/,
+        use: "ts-loader",
       },
-    },
-  ],
-}	
+    ],
+  },
 };

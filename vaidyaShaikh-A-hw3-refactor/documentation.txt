@@ -1,52 +1,11 @@
-Audio Visualizer Project Documentation
+How I Implemented TypeScript
 
-Name: Aazeem Vaidya Shaikh
-Project Title: Blue Nebula Visualizer
+I converted all of my JavaScript files into TypeScript by renaming them from .js to .ts and adding type annotations. I removed all the file extensions from the import statements so TypeScript and webpack could work correctly. I also created a tsconfig.json file to tell TypeScript how to compile everything in the src folder. Finally, I used webpack and ts-loader to bundle all the TypeScript files into one bundle.js file that the browser loads.
 
-II. Audio Effect Nodes
-I added two BiquadFilterNodes:
+Challenges I Encountered
 
-Bass Filter (Low-Shelf) – boosts or cuts low frequencies, which is controlled by the bass slider.
+One challenge was that the browser could not load .ts files directly, which caused MIME and 404 errors until the bundling was set up correctly. I also ran into TypeScript errors when working with DOM elements, because TypeScript needs exact types like HTMLInputElement or HTMLButtonElement. Some audio variables were typed as possibly null, so I had to add null checks. Setting up webpack and understanding how everything connected together also took some time to get right.
 
-Treble Filter (High-Shelf) – boosts or cuts high frequencies, which is controlled by the treble slider.
+Improvements and Optimizations
 
-III. Sprite Class
-
-Class Name: Sprite
-Small glowing circles that react to the music:
-
-Size grows with bass
-
-Color shifts with treble
-
-Switches between filled/outlined on beats
-
-Moves slowly across the screen and wraps around edges
-
-They add energy and depth to the visualization.
-
-IV. App Data (av-data.json)
-
-The JSON file includes:
-
-Title: Blue Nebula Visualizer
-
-Track list (3 songs with file names/titles)
-
-Starting settings
-
-Instructions: “Press Play, toggle effects, adjust volume, switch tracks.”
-
-The JSON initializes the app title, UI state, and track menu.
-
-V. Aesthetic Improvements
-
-Added animated blue gradient background (The nebula effect)
-
-Neon-style glowing bars and rings
-
-Beat-reactive sprites
-
-Clean, organized control layout
-
-Self-Grade: 15 / 15: I feel like I've added significant usability and aesthetic upgrades to the base project, and I would be proud to put this on my portfolio.
+Adding TypeScript helped me catch several bugs early, especially with event targets and values coming from sliders. I created interfaces for objects like DrawParams to make the code easier to understand and more organized. I cleaned up old code, removed unused features like webkitAudioContext, and made sure every module exported and imported cleanly. Bundling everything into bundle.js made the final project simpler and easier for the browser to load.

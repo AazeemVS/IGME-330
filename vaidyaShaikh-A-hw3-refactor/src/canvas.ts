@@ -1,0 +1,380 @@
+
+let ctx: CanvasRenderingContext2D | null = null;
+let canvasWidth: number;
+let canvasHeight: number;
+let gradient: CanvasGradient | null = null;
+let analyserNode: AnalyserNode | null = null;
+let audioData: Uint8Array | null = null;
+// ===== Sprites =====
+let sprites: Sprite[] = [];
+
+interface SpriteConfig {
+  x: number;
+  y: number;
+  r?: number;
+  hue?: number;
+  vx?: number;
+  vy?: number;
+}
+
+interface Metrics {
+  avg: number;
+  bass: number;
+  treble: number;
+  beat: boolean;
+}
+
+interface DrawParams {
+  showGradient?: boolean;
+  showBars?: boolean;
+  showCircles?: boolean;
+  showNoise?: boolean;
+  showInvert?: boolean;
+  showEmboss?: boolean;
+}
+
+// Simple audio-reactive sprite
+class Sprite {
+  x: number;
+  y: number;
+  r: number;
+  hue: number;
+  vx: number;
+  vy: number;
+  pulse: number;
+  switch: boolean;
+
+  constructor({ x, y, r = 12, hue = 200, vx = 0, vy = 0 }: SpriteConfig) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.hue = hue;
+    this.vx = vx;
+    this.vy = vy;
+    this.pulse = 0;
+    this.switch = false;
+  }
+
+  update(metrics: Metrics): void {
+    const { avg, bass, treble, beat } = metrics;
+
+    // size changes with bass
+    this.pulse = 0.85 * this.pulse + 0.15 * bass;
+    this.r = 10 + this.pulse * 30;
+
+    // hue shifts with treble
+    this.hue = (this.hue + treble * 6) % 360;
+
+    // toggle state on beat
+    if (beat) this.switch = !this.switch;
+
+    // drift speed scales a bit with overall avg
+    const speedScale = 0.5 + avg;
+    this.x += this.vx * speedScale;
+    this.y += this.vy * speedScale;
+
+    // wrap around canvas
+    if (this.x < -this.r) this.x = canvasWidth + this.r;
+    if (this.x > canvasWidth + this.r) this.x = -this.r;
+    if (this.y < -this.r) this.y = canvasHeight + this.r;
+    if (this.y > canvasHeight + this.r) this.y = -this.r;
+  }
+
+  draw(ctx: CanvasRenderingContext2D): void {
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.shadowBlur = 8 + this.pulse * 24;
+    ctx.shadowColor = `hsl(${this.hue}, 80%, 60%)`;
+
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+
+    if (this.switch) {
+      ctx.fillStyle = `hsla(${this.hue}, 85%, 55%, 0.75)`;
+      ctx.fill();
+    } else {
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = `hsla(${this.hue}, 85%, 70%, 0.9)`;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+// Compute needed values from the current audioData array
+let lastAvg = 0;
+
+function computeMetrics(byteArray: Uint8Array): Metrics {
+  // average across all bins
+  let sum = 0;
+  for (let i = 0; i < byteArray.length; i++) sum += byteArray[i];
+  const avg = sum / (byteArray.length * 255); // 0..1
+
+  const band = Math.max(1, Math.floor(byteArray.length / 8));
+  let bassSum = 0;
+  let trebleSum = 0;
+  for (let i = 0; i < band; i++) bassSum += byteArray[i];
+  for (let i = byteArray.length - band; i < byteArray.length; i++) {
+    trebleSum += byteArray[i];
+  }
+  const bass = bassSum / (band * 255);
+  const treble = trebleSum / (band * 255);
+
+  const THRESH = 0.28;
+  const beat = avg > THRESH && lastAvg <= THRESH;
+  lastAvg = avg;
+
+  return { avg, bass, treble, beat };
+}
+
+// subtle deep-blue vertical gradient
+const makeBlueGradient = (): CanvasGradient => {
+  if (!ctx) {
+    // fallback, this should not happen after setupCanvas is called
+    throw new Error("Canvas context not initialized");
+  }
+  const g = ctx.createLinearGradient(0, 0, 0, canvasHeight);
+  g.addColorStop(0.0, "#051026");
+  g.addColorStop(0.5, "#0b234a");
+  g.addColorStop(1.0, "#081a35");
+  return g;
+};
+
+const setupCanvas = (
+  canvasElement: HTMLCanvasElement,
+  analyserNodeRef: AnalyserNode
+): void => {
+  // create drawing context
+  const context = canvasElement.getContext("2d");
+  if (!context) return;
+  ctx = context;
+
+  canvasWidth = canvasElement.width;
+  canvasHeight = canvasElement.height;
+
+  // create a gradient that runs top to bottom
+  gradient = makeBlueGradient();
+
+  // keep a reference to the analyser node
+  analyserNode = analyserNodeRef;
+
+  // this is the array where the analyser data will be stored
+  audioData = new Uint8Array(analyserNode.fftSize / 2);
+
+  sprites = [];
+  const count = 10;
+  for (let i = 0; i < count; i++) {
+    sprites.push(
+      new Sprite({
+        x: Math.random() * canvasWidth,
+        y: Math.random() * canvasHeight,
+        r: 8 + Math.random() * 14,
+        hue: 180 + Math.random() * 60,
+        vx: (Math.random() * 2 - 1) * 0.8,
+        vy: (Math.random() * 2 - 1) * 0.8
+      })
+    );
+  }
+};
+
+// helper: average amplitude
+const avgAmp = (): number => {
+  if (!audioData) return 0;
+  let sum = 0;
+  for (let i = 0; i < audioData.length; i++) sum += audioData[i];
+  return sum / (audioData.length * 255);
+};
+
+// helper: rounded rect bars
+const roundRect = (
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+): void => {
+  if (!ctx) return;
+  const rr = Math.min(r, w * 0.5, Math.abs(h) * 0.5);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+};
+
+const draw = (params: DrawParams = {}): void => {
+  if (!analyserNode || !audioData || !ctx) return;
+
+  (analyserNode as any).getByteFrequencyData(audioData as any);
+  
+  const metrics = computeMetrics(audioData);
+  for (const s of sprites) s.update(metrics);
+  for (const s of sprites) s.draw(ctx);
+
+  // 2 - background: fade with slight trail for motion blur
+  ctx.save();
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "#000"; // base clear
+  ctx.globalAlpha = 0.15; // longer persistence trail
+  ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+  ctx.restore();
+
+  // 3 - subtle blue gradient wash
+  if (params.showGradient) {
+    // slowly shift gradient over time for a living background
+    gradient = makeBlueGradient();
+    ctx.save();
+    ctx.fillStyle = gradient;
+    ctx.globalAlpha = 0.9;
+    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+    ctx.restore();
+  }
+
+  // Glow settings
+  const avg = avgAmp();
+  const glow = 8 + Math.floor(avg * 24);
+  const hueBase = 205;
+  const sat = 80 + Math.floor(avg * 20);
+  const light = 50 + Math.floor(avg * 10);
+
+  if (params.showBars) {
+    const barSpacing = 3;
+    const margin = 20;
+    const available = canvasWidth - margin * 2;
+    const barWidth = Math.max(
+      2,
+      (available - barSpacing * (audioData.length - 1)) / audioData.length
+    );
+    const baseY = canvasHeight * 0.72;
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.shadowBlur = glow;
+    ctx.shadowColor = `hsl(${hueBase}, ${sat}%, ${light + 15}%)`;
+
+    for (let i = 0; i < audioData.length; i++) {
+      const mag = audioData[i] / 255; // 0..1
+      const h = Math.pow(mag, 1.3) * canvasHeight * 0.45; // eased height
+      const x = margin + i * (barWidth + barSpacing);
+      const y = baseY - h;
+
+      ctx.fillStyle = `hsl(${hueBase + i * 0.08}, ${sat}%, ${
+        40 + mag * 35
+      }%)`;
+      roundRect(x, y, barWidth, h, Math.min(6, barWidth * 0.5));
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // 5 - radial pulse rings from center
+  if (params.showCircles) {
+    const cx = canvasWidth / 2;
+    const cy = canvasHeight / 2;
+    const ringCount = 5;
+    const baseR = 20 + avg * 60;
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineWidth = 2 + avg * 3;
+    ctx.shadowBlur = glow + 6;
+    ctx.shadowColor = `hsl(${hueBase}, ${sat}%, ${light + 10}%)`;
+
+    for (let r = 0; r < ringCount; r++) {
+      const radius = baseR + r * (canvasHeight * 0.08);
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = `hsla(${hueBase + r * 3}, ${sat}%, ${
+        55 - r * 4
+      }%, ${0.28 + avg * 0.4})`;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  {
+    const cx = canvasWidth / 2;
+    const cy = canvasHeight * 0.42;
+    const scale = canvasHeight * (0.12 + avg * 0.22); // ribbon amplitude
+    const step = Math.max(2, Math.floor(audioData.length / 64)); // thin the samples
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = `hsla(${hueBase - 10}, ${sat}%, ${
+      60 + avg * 10
+    }%, 0.85)`;
+    ctx.shadowBlur = glow + 4;
+    ctx.shadowColor = `hsl(${hueBase}, ${sat}%, ${light + 15}%)`;
+
+    ctx.beginPath();
+    ctx.moveTo(0, cy);
+
+    for (let i = 0; i < audioData.length; i += step) {
+      const t = i / (audioData.length - 1);
+      const x = t * canvasWidth;
+      const m = audioData[i] / 255;
+      const y = cy - (m - 0.5) * 2 * scale;
+
+      // Quadratic curve to smooth segments
+      const ctrlX = x - (canvasWidth / (audioData.length / step)) * 0.5;
+      const ctrlY = (cy + y) * 0.5;
+      ctx.quadraticCurveTo(ctrlX, ctrlY, x, y);
+    }
+
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // 6 - bitmap manipulation
+  if (params.showNoise || params.showInvert || params.showEmboss) {
+    // A) grab pixels
+    const imageData = ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+    const data = imageData.data;
+    const length = data.length;
+
+    // B) iterate RGBA in steps of 4
+    for (let i = 0; i < length; i += 4) {
+      // C) noise (blue-tinted sparkles), only if enabled
+      if (params.showNoise && Math.random() < 0.035) {
+        data[i] = 80 + Math.random() * 70;
+        data[i + 1] = 120 + Math.random() * 80;
+        data[i + 2] = 255;
+      }
+
+      // Invert, only if enabled
+      if (params.showInvert) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        data[i] = 255 - r;
+        data[i + 1] = 255 - g;
+        data[i + 2] = 255 - b;
+      }
+    }
+
+    if (params.showEmboss) {
+      const src = new Uint8ClampedArray(data);
+      const w4 = imageData.width * 4;
+
+      for (let i = 0; i < length; i++) {
+        if (i % 4 === 3) continue;
+        const onRightEdge = (i + 4) % w4 === 0;
+        const onBottomRow = i >= length - w4;
+        if (onRightEdge || onBottomRow) {
+          data[i] = 127;
+          continue;
+        }
+        const value = 127 + 2 * src[i] - src[i + 4] - src[i + w4];
+        data[i] = value < 0 ? 0 : value > 255 ? 255 : value;
+      }
+    }
+
+    // D) copy image data back to canvas
+    ctx.putImageData(imageData, 0, 0);
+  }
+};
+
+export { setupCanvas, draw };
