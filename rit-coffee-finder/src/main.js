@@ -1,6 +1,7 @@
 import * as map from "./map.js";
+import * as ajax from "./ajax.js";
 
-
+let poi;
 
 function init() {
   map.initMap();
@@ -9,8 +10,26 @@ function init() {
    setupUI(); 
 }
 
+function loadPOI() {
+  const url = "https://people.rit.edu/~acjvks/shared/330/igm-points-of-interest.php";
+
+  // callback after data arrives
+  function poiLoaded(jsonString) {
+  poi = JSON.parse(jsonString);
+  console.log("POI Data:", poi);
+
+  // make markers and add them to the map
+  for (let p of poi) {
+  map.addMarker(p.coordinates, p.title, "A POI!", "poi");
+}
+}
+
+
+  // start ajax download
+  ajax.downloadFile(url, poiLoaded);
+}
+
 function setupUI(){
-  // it's easy to get [longitude,latitude] coordinates with this tool: http://geojson.io/
   const lnglatRIT = [-77.67454147338866, 43.08484339838443];
   const lnglatIGM = [-77.67990589141846, 43.08447511795301];
 
@@ -42,11 +61,13 @@ function setupUI(){
     map.flyTo(lnglatIGM);
   };
 
-  // Load markers
-  btn5.onclick = () => {
-    map.loadMarkers();
-    map.addMarkersToMap();
-  };
+  // load some marker data (external AJAX data)
+btn5.onclick = () => {
+  // only download once
+  if (!poi) {
+    loadPOI();
+  }
+};
 }
 
 export { init };

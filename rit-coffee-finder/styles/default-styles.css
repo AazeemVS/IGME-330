@@ -49,3 +49,12 @@
         color: #777;
         background-color: hsl(195, 100%, 60%);
       }
+
+      .poi {
+      background-image: url("../images/mapbox-icon.png");
+      background-size: cover;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+    }

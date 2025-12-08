@@ -16,21 +16,71 @@ function initMap() {
     center: [-77.67454147338866, 43.08484339838443],
     zoom: 15.5
   });
+
+  // === 3D BUILDINGS LAYER (from Mapbox example) ===
+  map.on('load', function () {
+    const layers = map.getStyle().layers;
+    const labelLayerId = layers.find(
+      (layer) => layer.type === 'symbol' && layer.layout['text-field']
+    ).id;
+
+    map.addLayer(
+      {
+        id: 'add-3d-buildings',
+        source: 'composite',
+        'source-layer': 'building',
+        filter: ['==', 'extrude', 'true'],
+        type: 'fill-extrusion',
+        minzoom: 15,
+        paint: {
+          'fill-extrusion-color': '#aaa',
+          'fill-extrusion-height': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            ['get', 'height']
+          ],
+          'fill-extrusion-base': [
+            'interpolate',
+            ['linear'],
+            ['zoom'],
+            15,
+            0,
+            15.05,
+            ['get', 'min_height']
+          ],
+          'fill-extrusion-opacity': 0.6
+        }
+      },
+      labelLayerId
+    );
+  });
+}
+
+function addMarker(coordinates, title, description, className) {
+  let el = document.createElement('div');
+  el.className = className;
+
+  new mapboxgl.Marker(el)
+    .setLngLat(coordinates)
+    .setPopup(
+      new mapboxgl.Popup({ offset: 25 })
+        .setHTML('<h3>' + title + '</h3><p>' + description + '</p>')
+    )
+    .addTo(map);
 }
 
 function addMarkersToMap() {
   for (const feature of geojson.features) {
-    const el = document.createElement('div');
-    el.className = 'marker';
-
-    new mapboxgl.Marker(el)
-      .setLngLat(feature.geometry.coordinates)
-      .setPopup(
-        new mapboxgl.Popup({ offset: 25 }).setHTML(
-          `<h3>${feature.properties.title}</h3><p>${feature.properties.description}</p>`
-        )
-      )
-      .addTo(map);
+    addMarker(
+      feature.geometry.coordinates,
+      feature.properties.title,
+      feature.properties.description,
+      "marker"
+    );
   }
 }
 
@@ -91,4 +141,4 @@ function setPitchAndBearing(pitch = 0, bearing = 0){
 }
 
 
-export { initMap, loadMarkers, addMarkersToMap, flyTo, setZoomLevel, setPitchAndBearing };
+export { initMap, loadMarkers, addMarker, addMarkersToMap, flyTo, setZoomLevel, setPitchAndBearing };
