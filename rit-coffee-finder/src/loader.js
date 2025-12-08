@@ -1,3 +1,3 @@
-import * as main from "./main.js";
+import { init } from "./main.js";
 // load fonts, sounds, whatever ...
-main.init();
+window.addEventListener("DOMContentLoaded", init);

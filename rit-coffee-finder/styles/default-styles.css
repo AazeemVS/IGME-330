@@ -27,3 +27,25 @@
         text-align: center;
         font-family: 'Open Sans', sans-serif;
       }
+
+      /* Control panel styling */
+      #controls {
+        position: absolute;
+        z-index: 1;
+        top: 20px;
+        left: 20px;
+        width: 130px;
+        background-color: lightgray;
+        border: 1px solid black;
+      }
+
+      #controls button {
+        font-size: .9em;
+        width: 100%;
+        background-color: hsl(195, 100%, 50%);
+      }
+
+      #controls button:hover {
+        color: #777;
+        background-color: hsl(195, 100%, 60%);
+      }
